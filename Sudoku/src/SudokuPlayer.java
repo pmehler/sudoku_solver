@@ -15,13 +15,13 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
 
     /// --- AC-3 Constraint Satisfication --- ///
-   
-    
+
+
     // Useful but not required Data-Structures;
     ArrayList<Integer>[] globalDomains = new ArrayList[81];
     ArrayList<Integer>[] neighbors = new ArrayList[81];
     Queue<Arc> globalQueue = new LinkedList<Arc>();
-        
+
 
 	/*
 	 * This method sets up the data structures and the initial global constraints
@@ -40,8 +40,72 @@ public class SudokuPlayer implements Runnable, ActionListener {
          *  These will be the data structures necessary for AC-3.
          **/
 
-        
-        
+         ArrayList<Integer> listDomains = new ArrayList<Integer>();
+         for(int j = 1; j<=9; j++){
+           listDomains.add(j);
+         }
+
+
+
+         //populate global domains
+         for (int i = 0; i < globalDomains.length; i++){
+           if (vals[(int)i/9][i%9]>0){
+             ArrayList<Integer> list = new ArrayList<Integer>();
+             list.add(vals[(int)i/9][i%9]);
+             globalDomains[i] = list;
+           } else {
+             ArrayList<Integer> newList = new ArrayList<>(listDomains);
+             globalDomains[i] = newList;
+           }
+         }
+         /*
+         for(int g = 0; g < globalDomains.length; g++){
+           for(int q: globalDomains[g]){
+             System.out.print(q);
+           }
+           System.out.println();
+         }
+         */
+
+         //call alldiff for all rows
+
+         int[] currRow = new int[9];
+         for(int row = 0; row < 9; row++){
+           for(int index = 0; index<9; index++){
+             currRow[index] = index + (9 * row);
+           }
+           allDiff(currRow);
+         }
+
+
+
+         //call alldiff for all columns
+        int[] currCol = new int[9];
+        for(int col = 0; col < 9; col++){
+            for(index = 0; index<9; index++){
+                currCol[index] = (index * 9) + col;
+            }
+            allDiff(currCol);
+        }
+
+         //call alldiff for all box
+         //TO do
+        int[] currSquare = new int[9];
+        for(int col = 0; col < 9; col++){
+            for(index = 0; index<9; index++){
+                currCol[index] = (index * 9) + col;
+            }
+            allDiff(currSquare);
+        }
+
+        fillGlobalQueue();
+
+
+
+
+
+
+
          // Initial call to backtrack() on cell 0 (top left)
         boolean success = backtrack(0,globalDomains);
 
@@ -50,7 +114,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
     }
 
-    
+
 
     /*
      *  This method defines constraints between a set of variables.
@@ -58,71 +122,105 @@ public class SudokuPlayer implements Runnable, ActionListener {
      */
     private final void allDiff(int[] all){
         // YOUR CODE HERE
-
-        
-
+        // [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        // [0, 1, 2, 9, 10, 11, 18, 19, 20]
+        //fill neighbors
+        for (int i: all){
+          for(int j: all){
+            if (j!=i){
+              if (!neighbors[i].contains(j)){
+                neighbors[i].add(j)
+              }
+            }
+          }
+        }
     }
 
 
     /*
+     *  Fill global queue
+     */
+    private final void fillGlobalQueue(){
+
+      for(int i = 0; i < neighbors.length; i++){ //81 tiles
+
+        for(int val1= 0; val1< neighbors[i].size(); val1++){
+          for(int val2 = 0; val2 < neighbors[i].size(); val2++){
+            if (val1!=val2){
+              Arc newArc = new Arc(val1, val2);
+              globalQueue.add(newArc);
+            }
+          }
+        }
+
+      }
+    }
+
+
+
+
+
+
+
+    /*
      * This is the backtracking algorithm. If you change this method header, you will have
-     * to update the calls to this method. 
+     * to update the calls to this method.
      */
     private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
 
     	//Do NOT remove
     	recursions +=1;
-    	
-    	
+
+
         // YOUR CODE HERE
-        
+
         return false;
 
     }
 
-    
+
     /*
      * This is the actual AC3 Algorithm. You may change this method header.
      */
     private final boolean AC3(ArrayList<Integer>[] Domains) {
-    	
+
 		// YOUR CODE HERE
-    	
+
 		return true;
     }
-    
-    
+
+
 
     /*
      * This is the Revise() procedure. You may change this method header.
      */
      private final boolean Revise(Arc t, ArrayList<Integer>[] Domains){
-        
-    	 
-    	 
+
+
+
  		// YOUR CODE HERE
          return false;
  	}
 
-   
+
      /*
-      * This is where you will write your custom solver. 
+      * This is where you will write your custom solver.
       * You should not change this method header.
       */
     private final void customSolver(){
-    	   
-    	   //set 'success' to true if a successful board    
+
+    	   //set 'success' to true if a successful board
     	   //is found and false otherwise.
-    	   boolean success = true; 
+    	   boolean success = true;
 		   board.Clear();
-	        
+
 	        System.out.println("Running custom algorithm");
 
 	        //-- Your Code Here --
-	 
-	        
+
+
 		   Finished(success);
-    	       
+
     	}
 
 
@@ -131,7 +229,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     /// ---------- HELPER FUNCTIONS --------- ///
     /// ----   DO NOT EDIT REST OF FILE   --- ///
     public final boolean valid(int x, int y, int val){
-        
+
         if (vals[x][y] == val)
             return true;
         if (rowContains(x,val))
@@ -181,7 +279,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 	        	System.out.print(vals[i][j]+" ");
 	        System.out.println();
         }*/
-        
+
         for (int v = 1; v <= 9; v++){
             // Every row is valid
             for (int r = 0; r < 9; r++)
@@ -214,7 +312,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
         board.showMessage("Success!");
     }
 
-    
+
 
     /// ---- GUI + APP Code --- ////
     /// ----   DO NOT EDIT  --- ////
@@ -263,9 +361,9 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
     public void run() {
         board = new Board(gui,this);
-        
+
         long start=0, end=0;
-       
+
         while(!initialize());
         if (gui)
             board.initVals(vals);
@@ -285,9 +383,9 @@ public class SudokuPlayer implements Runnable, ActionListener {
                 	end = System.currentTimeMillis();
                     break;
             }
-            
+
             CheckSolution();
-            
+
             if(!gui)
             	System.out.println("time to run: "+(end-start));
         }
@@ -319,14 +417,14 @@ public class SudokuPlayer implements Runnable, ActionListener {
                 break;
             case hard:
             	vals[0] = new int[] {1,2,0,4,0,0,3,0,0};
-            	vals[1] = new int[] {3,0,0,0,1,0,0,5,0};  
-            	vals[2] = new int[] {0,0,6,0,0,0,1,0,0};  
-            	vals[3] = new int[] {7,0,0,0,9,0,0,0,0};    
-            	vals[4] = new int[] {0,4,0,6,0,3,0,0,0};    
-            	vals[5] = new int[] {0,0,3,0,0,2,0,0,0};    
-            	vals[6] = new int[] {5,0,0,0,8,0,7,0,0};    
-            	vals[7] = new int[] {0,0,7,0,0,0,0,0,5};    
-            	vals[8] = new int[] {0,0,0,0,0,0,0,9,8};  
+            	vals[1] = new int[] {3,0,0,0,1,0,0,5,0};
+            	vals[2] = new int[] {0,0,6,0,0,0,1,0,0};
+            	vals[3] = new int[] {7,0,0,0,9,0,0,0,0};
+            	vals[4] = new int[] {0,4,0,6,0,3,0,0,0};
+            	vals[5] = new int[] {0,0,3,0,0,2,0,0,0};
+            	vals[6] = new int[] {5,0,0,0,8,0,7,0,0};
+            	vals[7] = new int[] {0,0,7,0,0,0,0,0,5};
+            	vals[8] = new int[] {0,0,0,0,0,0,0,9,8};
                 break;
             case random:
             default:
@@ -369,7 +467,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     }
 
     private void Finished(boolean success){
-    	
+
     	if(success) {
             board.writeVals();
             //board.showMessage("Solved in " + myformat.format(ops) + " ops \t(" + myformat.format(recursions) + " recursive ops)");
@@ -380,9 +478,9 @@ public class SudokuPlayer implements Runnable, ActionListener {
         	board.showMessage("No valid configuration found");
         }
          recursions = 0;
-       
+
     }
- 
+
     public static void main(String[] args) {
 
         Scanner scan = new Scanner(System.in);
@@ -394,7 +492,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
             gui = false;
         else
             gui = true;
-        
+
         if(gui) {
         	System.out.println("difficulty? \teasy (e), medium (m), hard (h), random (r)");
 
@@ -414,20 +512,20 @@ public class SudokuPlayer implements Runnable, ActionListener {
 	                System.out.println("difficulty? \teasy (e), medium (m), hard (h), random(r)");
 	            }
 	        }
-	        
+
 	        SudokuPlayer app = new SudokuPlayer();
 	        app.run();
-	        
+
         }
         else { //no gui
-        	
+
         	boolean again = true;
-        
+
         	int numiters = 0;
         	long starttime, endtime, totaltime=0;
-        
+
         	while(again) {
-        
+
         		numiters++;
         		System.out.println("difficulty? \teasy (e), medium (m), hard (h), random (r)");
 
@@ -446,7 +544,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 		            else{
 		                System.out.println("difficulty? \teasy (e), medium (m), hard (h), random(r)");
 		            }
-	            
+
 		        }
 
 	            System.out.println("Algorithm? AC3 (1) or Custom (2)");
@@ -454,34 +552,34 @@ public class SudokuPlayer implements Runnable, ActionListener {
 	                alg = algorithm.valueOf("AC3");
 	            else
 	                alg = algorithm.valueOf("Custom");
-	        
-	
+
+
 		        SudokuPlayer app = new SudokuPlayer();
-		       
+
 		        starttime = System.currentTimeMillis();
-		        
+
 		        app.run();
-		        
+
 		        endtime = System.currentTimeMillis();
-		        
+
 		        totaltime += (endtime-starttime);
-	        
-	       
+
+
 	        	System.out.println("quit(0), run again(1)");
 	        	if (scan.nextInt()==1)
 	        		again=true;
 	        	else
 	        		again=false;
-	        
+
 	        	scan.nextLine();
-	        
+
         	}
-        
+
         	System.out.println("average time over "+numiters+" iterations: "+(totaltime/numiters));
         }
-    
-        
-        
+
+
+
         scan.close();
     }
 
@@ -675,10 +773,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     static boolean gui = true;
     static int numCells = 15;
     static DecimalFormat myformat = new DecimalFormat("###,###");
-    
+
     //For printing
 	static int recursions;
 }
-
-
-
