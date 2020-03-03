@@ -39,7 +39,11 @@ public class SudokuPlayer implements Runnable, ActionListener {
          *  Create Data structures ( or populate the ones defined above ).
          *  These will be the data structures necessary for AC-3.
          **/
-
+		// fill globalDomains with empty ArrayLists
+		for(int i =0; i<neighbors.length; i++) {
+			neighbors[i] = new ArrayList<Integer>();
+		}
+		
          ArrayList<Integer> listDomains = new ArrayList<Integer>();
          for(int j = 1; j<=9; j++){
            listDomains.add(j);
@@ -78,11 +82,10 @@ public class SudokuPlayer implements Runnable, ActionListener {
          }
 
 
-
          //call alldiff for all columns
         int[] currCol = new int[9];
         for(int col = 0; col < 9; col++){
-            for(index = 0; index<9; index++){
+            for(int index = 0; index<9; index++){
                 currCol[index] = (index * 9) + col;
             }
             allDiff(currCol);
@@ -90,24 +93,17 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
          //call alldiff for all box
          //TO do
-        int[] currSquare = new int[9];
-        for(int col = 0; col < 9; col++){
-            for(index = 0; index<9; index++){
-                currCol[index] = (index * 9) + col;
-            }
-            allDiff(currSquare);
-        }
 
         fillGlobalQueue();
 
 
-
-
-
-
-
          // Initial call to backtrack() on cell 0 (top left)
         boolean success = backtrack(0,globalDomains);
+
+        
+        for(int i=0; i<globalDomains.length; i++) {
+    			vals[i/9][i%9] = globalDomains[i].get(0);
+        }
 
         // Prints evaluation of run
         Finished(success);
@@ -129,13 +125,12 @@ public class SudokuPlayer implements Runnable, ActionListener {
           for(int j: all){
             if (j!=i){
               if (!neighbors[i].contains(j)){
-                neighbors[i].add(j)
+                neighbors[i].add(j);
               }
             }
           }
         }
-    }
-
+    	}
 
     /*
      *  Fill global queue
@@ -157,25 +152,46 @@ public class SudokuPlayer implements Runnable, ActionListener {
     }
 
 
-
-
-
-
-
     /*
      * This is the backtracking algorithm. If you change this method header, you will have
      * to update the calls to this method.
      */
     private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
-
-    	//Do NOT remove
-    	recursions +=1;
-
-
-        // YOUR CODE HERE
-
-        return false;
-
+    	
+		//Do NOT remove
+		recursions +=1;
+		
+    		// Check if board has been filled
+    		if(cell == 81) {
+    			return true;
+    		}
+    		
+    		// Check in vals[][] already has an assignment for this cell
+    		if(vals[cell/9][cell%9]!=0) {
+    			System.out.println("pre-assigned value: " + vals[cell/9][cell%9]);
+    			return backtrack(cell+1, globalDomains);
+    		}
+    		
+    		if(!AC3(globalDomains)) {
+    			return false;
+    		}
+    		
+    		ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
+		System.out.println("first value of temp: " + temp.get(0));
+    		while(!temp.isEmpty()) {
+    			globalDomains[cell].clear();
+    			globalDomains[cell].add(temp.get(0));
+    			if(backtrack(cell+1, globalDomains)) {
+    				return true;
+    			}
+    			
+    			else { //the next backtrack assignment failed
+    				//remove value from possible domains of next cell
+    				temp.remove(0);
+    			}	
+    		}
+		System.out.println("return false");
+    		return false;
     }
 
 
@@ -184,7 +200,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
      */
     private final boolean AC3(ArrayList<Integer>[] Domains) {
 
-		// YOUR CODE HERE
+		
 
 		return true;
     }
@@ -195,11 +211,19 @@ public class SudokuPlayer implements Runnable, ActionListener {
      * This is the Revise() procedure. You may change this method header.
      */
      private final boolean Revise(Arc t, ArrayList<Integer>[] Domains){
-
-
-
- 		// YOUR CODE HERE
-         return false;
+    	 	// Determines if the domain of a variable can be reduced
+    	 	boolean revised = false;
+    	 	
+    	 	if(globalDomains[t.Xj].size()==1) {
+    	 		if(globalDomains[t.Xi].contains(globalDomains[t.Xj].get(0))){
+    	 			globalDomains[t.Xi].remove(globalDomains[t.Xi].indexOf(globalDomains[t.Xj].get(0)));
+    	 		}
+    	 	}
+    	 	
+    	 	for(int i=0; i<globalDomains[t.Xi].size(); i++) {
+    	 		
+    	 	}
+        return false;
  	}
 
 
