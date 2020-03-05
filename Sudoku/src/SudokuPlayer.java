@@ -203,6 +203,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     		// Check in vals[][] already has an assignment for this cell
     		if(cell!=81 && vals[cell/9][cell%9]!=0) {
     			//System.out.println("Already Assigned Value: " + vals[cell/9][cell%9]+" calling backtrack");
+    			
     			return backtrack(cell+1, globalDomains);
     		}
         ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
@@ -246,7 +247,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     		while(!temp.isEmpty()) {
     			globalDomains[cell].clear();
     			globalDomains[cell].add(temp.get(0));
-    			System.out.println("Trying value: " + temp.get(0)+ " for cell "+cell);
+    			//System.out.println("Trying value: " + temp.get(0)+ " for cell "+cell);
     			//System.out.println("recursively calling backtrack on cell " + (cell+1));
     			if(backtrack(cell+1, globalDomains)) {
     				return true;
@@ -257,6 +258,11 @@ public class SudokuPlayer implements Runnable, ActionListener {
     			}
     		}
 		System.out.println("return false, Cell num, value: "+cell+ ", "+ globalDomains[cell].get(0));
+		globalDomains[cell].clear();
+	    for(int j = 1; j<=9; j++){
+	    		globalDomains[cell].add(j);
+	    }
+	    
     		return false;
     }
 
