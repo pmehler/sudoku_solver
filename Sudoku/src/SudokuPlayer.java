@@ -85,15 +85,37 @@ public class SudokuPlayer implements Runnable, ActionListener {
          //call alldiff for all columns
         int[] currCol = new int[9];
         for(int col = 0; col < 9; col++){
+        		//System.out.print("column: "); 
             for(int index = 0; index<9; index++){
                 currCol[index] = (index * 9) + col;
+                //System.out.print((((index * 9)+ col)+", ") );
             }
+            //System.out.println(); 
             allDiff(currCol);
         }
 
          //call alldiff for all box
-         //TO do
-
+        int[] box1 = new int[]{0,1,2,9,10,11,18,19,20};
+        int[] box2 = new int[]{3,4,5,12,13,14,21,22,23};
+        int[] box3 = new int[]{6,7,8,15,16,17,24,25,26};
+        int[] box4 = new int[]{27,28,29,36,37,38,45,46,47};
+        int[] box5 = new int[]{30,31,32,39,40,41,48,49,50};
+        int[] box6 = new int[]{33,34,35,42,43,44,51,52,53};
+        int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
+        int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
+        int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
+        
+        int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
+        for(int i=0; i<currBox[0].length; i++) {
+        		allDiff(currBox[i]);
+        }
+        /*
+        for(int i=0; i<neighbors[0].size(); i++) {
+        		System.out.print(neighbors[0].get(i)+", ");
+        }
+        System.out.println();
+        */
+        
         fillGlobalQueue();
 
 
@@ -101,22 +123,32 @@ public class SudokuPlayer implements Runnable, ActionListener {
         boolean success = backtrack(0,globalDomains);
 
 
-        System.out.println("printing gd");
+        //System.out.println("printing gd");
         /*for(int g = 0; g < globalDomains.length; g++){
           for(int q: globalDomains[g]){
             System.out.print(q);
           }
           System.out.println();
         }*/
-        System.out.println("done printing gd");
+        //System.out.println("done printing gd");
 
 
         for(int i=0; i<globalDomains.length; i++) {
     			vals[i/9][i%9] = globalDomains[i].get(0);
         }
-
+        /*
+        for(int i=0; i<globalDomains.length; i++) {
+        		for(int j=0; j<globalDomains[i].size(); j++) {
+        			System.out.print(globalDomains[i].get(j)+", ");
+        		}
+			System.out.println();
+        }
+        */
+        
         // Prints evaluation of run
         Finished(success);
+        
+        
 
     }
 
@@ -149,15 +181,13 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
       for(int i = 0; i < neighbors.length; i++){ //81 tiles
 
-        for(int val1= 0; val1< neighbors[i].size(); val1++){
-          for(int val2 = 0; val2 < neighbors[i].size(); val2++){
-            if (val1!=val2){
-              Arc newArc = new Arc(val1, val2);
+        for(int val1= 0; val1< neighbors[i].size(); val1++){ // array at each index of neighbors
+            if (i!=val1){
+              Arc newArc = new Arc(i, neighbors[i].get(val1));
+              //System.out.println(newArc.toString()+", ");
               globalQueue.add(newArc);
             }
-          }
-        }
-
+          }   
       }
     }
 
@@ -172,43 +202,54 @@ public class SudokuPlayer implements Runnable, ActionListener {
 		//Do NOT remove
 		recursions +=1;
 
-    		// Check if board has been filled
-    		if(cell == 81) {
-    			return true;
-    		}
 
     		// Check in vals[][] already has an assignment for this cell
-    		if(vals[cell/9][cell%9]!=0) {
-    			//System.out.println("pre-assigned value: " + vals[cell/9][cell%9]);
+    		if(cell!=81 && vals[cell/9][cell%9]!=0) {
+    			//System.out.println("Already Assigned Value: " + vals[cell/9][cell%9]+" calling backtrack");
     			return backtrack(cell+1, globalDomains);
     		}
         ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
-        System.arraycopy(globalDomains, 0, globalDomainsCopy, 0, 81);
+        for(int i=0; i<globalDomains.length; i++) {
+        		globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]); 
+        }
+        //System.arraycopy(globalDomains, 0, globalDomainsCopy, 0, 81);
 
-        ArrayList<Integer> temp2 = new ArrayList<>(globalDomains[cell]);
+        // ArrayList<Integer> temp2 = new ArrayList<>(globalDomains[cell]);
+        
+        /*
         System.out.print(cell + "  ");
         System.out.println("Printing temp before ac3");
         for(int g: temp2){
           System.out.println(g);
         }
-
+		*/
+        if(cell!=0) {
+        		//System.out.println("calling ac3, cell "+ (cell-1) +" has val " + globalDomains[cell-1].get(0));
+        }
+         
     		if(!AC3(globalDomainsCopy)) {
-          System.out.print(cell + "  ");
-          System.out.println("AC3 returned false");
+          //System.out.print(cell + "  ");
+          //System.out.println("AC3 returned false");
     			return false;
     		}
-
+    		 if(cell!=0) {
+            System.out.println("value "+ globalDomains[cell-1].get(0)+ " is acceptable for Cell "+ (cell-1) + " as AC3 returned true");
+    		 }
+    		 
+    		// Check if board has been filled
+    		if(cell == 81) {
+    			return true;
+    		}
+            
     		ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
-        System.out.print(cell + "  ");
-        System.out.println("Printing temp");
-        for(int g: temp){
-          System.out.println(g);
-        }
-		System.out.println("first value of temp: " + temp.get(0));
+        //System.out.print(cell + "  ");
+        //System.out.println("Printing temp2");
+		//System.out.println("first value of temp: " + temp.get(0));
     		while(!temp.isEmpty()) {
     			globalDomains[cell].clear();
     			globalDomains[cell].add(temp.get(0));
-          System.out.println("recursively calling backtrack on cell " + (cell+1));
+    			//System.out.println("Trying value: " + temp.get(0)+ " for cell "+cell);
+    			//System.out.println("recursively calling backtrack on cell " + (cell+1));
     			if(backtrack(cell+1, globalDomains)) {
     				return true;
     			}
@@ -241,7 +282,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
             ArrayList<Integer> xiNeighbors = neighbors[curr.Xi];
             for(int i = 0; i < xiNeighbors.size(); i++){
               Arc newArc = new Arc(xiNeighbors.get(i), curr.Xi);
-              if(!arcQ.contains(newArc)){
+              if(!arcQ.contains(newArc)){  // contains() may always evaluate to true without equals() override for Arc class
                 arcQ.add(newArc);
               }
             }
@@ -263,7 +304,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     	 		if(Domains[t.Xi].contains(Domains[t.Xj].get(0))){
     	 			Domains[t.Xi].remove(Domains[t.Xi].indexOf(Domains[t.Xj].get(0)));
             revised = true;
-            System.out.println("removing " + Domains[t.Xj].get(0) + " from the domain of " +  t.Xi);
+            //System.out.println("removing "+Domains[t.Xj].get(0)+" at index " + t.Xj + " from the domain of index " +  t.Xi);
     	 		}
     	 	}
 
