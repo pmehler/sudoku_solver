@@ -43,7 +43,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 		for(int i =0; i<neighbors.length; i++) {
 			neighbors[i] = new ArrayList<Integer>();
 		}
-		
+
          ArrayList<Integer> listDomains = new ArrayList<Integer>();
          for(int j = 1; j<=9; j++){
            listDomains.add(j);
@@ -62,14 +62,14 @@ public class SudokuPlayer implements Runnable, ActionListener {
              globalDomains[i] = newList;
            }
          }
-         /*
+/*
          for(int g = 0; g < globalDomains.length; g++){
            for(int q: globalDomains[g]){
              System.out.print(q);
            }
            System.out.println();
-         }
-         */
+         }*/
+
 
          //call alldiff for all rows
 
@@ -100,7 +100,17 @@ public class SudokuPlayer implements Runnable, ActionListener {
          // Initial call to backtrack() on cell 0 (top left)
         boolean success = backtrack(0,globalDomains);
 
-        
+
+        System.out.println("printing gd");
+        /*for(int g = 0; g < globalDomains.length; g++){
+          for(int q: globalDomains[g]){
+            System.out.print(q);
+          }
+          System.out.println();
+        }*/
+        System.out.println("done printing gd");
+
+
         for(int i=0; i<globalDomains.length; i++) {
     			vals[i/9][i%9] = globalDomains[i].get(0);
         }
@@ -157,38 +167,55 @@ public class SudokuPlayer implements Runnable, ActionListener {
      * to update the calls to this method.
      */
     private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
-    	
+
+
 		//Do NOT remove
 		recursions +=1;
-		
+
     		// Check if board has been filled
     		if(cell == 81) {
     			return true;
     		}
-    		
+
     		// Check in vals[][] already has an assignment for this cell
     		if(vals[cell/9][cell%9]!=0) {
-    			System.out.println("pre-assigned value: " + vals[cell/9][cell%9]);
+    			//System.out.println("pre-assigned value: " + vals[cell/9][cell%9]);
     			return backtrack(cell+1, globalDomains);
     		}
-    		
-    		if(!AC3(globalDomains)) {
+        ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
+        System.arraycopy(globalDomains, 0, globalDomainsCopy, 0, 81);
+
+        ArrayList<Integer> temp2 = new ArrayList<>(globalDomains[cell]);
+        System.out.print(cell + "  ");
+        System.out.println("Printing temp before ac3");
+        for(int g: temp2){
+          System.out.println(g);
+        }
+
+    		if(!AC3(globalDomainsCopy)) {
+          System.out.print(cell + "  ");
+          System.out.println("AC3 returned false");
     			return false;
     		}
-    		
+
     		ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
+        System.out.print(cell + "  ");
+        System.out.println("Printing temp");
+        for(int g: temp){
+          System.out.println(g);
+        }
 		System.out.println("first value of temp: " + temp.get(0));
     		while(!temp.isEmpty()) {
     			globalDomains[cell].clear();
     			globalDomains[cell].add(temp.get(0));
+          System.out.println("recursively calling backtrack on cell " + (cell+1));
     			if(backtrack(cell+1, globalDomains)) {
     				return true;
     			}
-    			
     			else { //the next backtrack assignment failed
     				//remove value from possible domains of next cell
     				temp.remove(0);
-    			}	
+    			}
     		}
 		System.out.println("return false");
     		return false;
@@ -199,10 +226,27 @@ public class SudokuPlayer implements Runnable, ActionListener {
      * This is the actual AC3 Algorithm. You may change this method header.
      */
     private final boolean AC3(ArrayList<Integer>[] Domains) {
-
-		
-
-		return true;
+        Queue<Arc> arcQ = new LinkedList<>(globalQueue);
+        Arc curr;
+        while(true){
+          if(arcQ.isEmpty()){
+            return true;
+          }
+          curr = arcQ.remove();
+          Boolean changed = Revise(curr, Domains);
+          if(Domains[curr.Xi].isEmpty()){
+            return false;
+          }
+          if (changed){
+            ArrayList<Integer> xiNeighbors = neighbors[curr.Xi];
+            for(int i = 0; i < xiNeighbors.size(); i++){
+              Arc newArc = new Arc(xiNeighbors.get(i), curr.Xi);
+              if(!arcQ.contains(newArc)){
+                arcQ.add(newArc);
+              }
+            }
+          }
+        }
     }
 
 
@@ -213,17 +257,20 @@ public class SudokuPlayer implements Runnable, ActionListener {
      private final boolean Revise(Arc t, ArrayList<Integer>[] Domains){
     	 	// Determines if the domain of a variable can be reduced
     	 	boolean revised = false;
-    	 	
-    	 	if(globalDomains[t.Xj].size()==1) {
-    	 		if(globalDomains[t.Xi].contains(globalDomains[t.Xj].get(0))){
-    	 			globalDomains[t.Xi].remove(globalDomains[t.Xi].indexOf(globalDomains[t.Xj].get(0)));
+
+    	 	if(Domains[t.Xj].size()==1) {
+          //System.out.println("Size of gD copy at "+ Xj)
+    	 		if(Domains[t.Xi].contains(Domains[t.Xj].get(0))){
+    	 			Domains[t.Xi].remove(Domains[t.Xi].indexOf(Domains[t.Xj].get(0)));
+            revised = true;
+            System.out.println("removing " + Domains[t.Xj].get(0) + " from the domain of " +  t.Xi);
     	 		}
     	 	}
-    	 	
-    	 	for(int i=0; i<globalDomains[t.Xi].size(); i++) {
-    	 		
-    	 	}
-        return false;
+
+    	 	/*for(int i=0; i<globalDomains[t.Xi].size(); i++) {
+
+    	 	}*/
+        return revised;
  	}
 
 
