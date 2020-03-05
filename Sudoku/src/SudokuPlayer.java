@@ -180,7 +180,6 @@ public class SudokuPlayer implements Runnable, ActionListener {
     private final void fillGlobalQueue(){
 
       for(int i = 0; i < neighbors.length; i++){ //81 tiles
-
         for(int val1= 0; val1< neighbors[i].size(); val1++){ // array at each index of neighbors
             if (i!=val1){
               Arc newArc = new Arc(i, neighbors[i].get(val1));
@@ -198,10 +197,8 @@ public class SudokuPlayer implements Runnable, ActionListener {
      */
     private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
 
-
 		//Do NOT remove
 		recursions +=1;
-
 
     		// Check in vals[][] already has an assignment for this cell
     		if(cell!=81 && vals[cell/9][cell%9]!=0) {
@@ -230,6 +227,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     		if(!AC3(globalDomainsCopy)) {
           //System.out.print(cell + "  ");
           //System.out.println("AC3 returned false");
+    			
     			return false;
     		}
     		 if(cell!=0) {
@@ -248,7 +246,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     		while(!temp.isEmpty()) {
     			globalDomains[cell].clear();
     			globalDomains[cell].add(temp.get(0));
-    			//System.out.println("Trying value: " + temp.get(0)+ " for cell "+cell);
+    			System.out.println("Trying value: " + temp.get(0)+ " for cell "+cell);
     			//System.out.println("recursively calling backtrack on cell " + (cell+1));
     			if(backtrack(cell+1, globalDomains)) {
     				return true;
@@ -258,7 +256,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     				temp.remove(0);
     			}
     		}
-		System.out.println("return false");
+		System.out.println("return false, Cell num, value: "+cell+ ", "+ globalDomains[cell].get(0));
     		return false;
     }
 
