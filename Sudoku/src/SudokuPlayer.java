@@ -20,9 +20,9 @@ public class SudokuPlayer implements Runnable, ActionListener {
   /// --- AC-3 Constraint Satisfication --- ///
 
   // Useful Data-Structures;
-  ArrayList<Integer>[] globalDomains = new ArrayList[81];
-  ArrayList<Integer>[] neighbors = new ArrayList[81];
-  Queue<Arc> globalQueue = new LinkedList<Arc>();
+  ArrayList<Integer>[] globalDomains = new ArrayList[81];  // Holds viable domains for each index
+  ArrayList<Integer>[] neighbors = new ArrayList[81];		// Each index has an ArrayList of indexes with which it is in constraint with
+  Queue<Arc> globalQueue = new LinkedList<Arc>();			// Queue of Arcs which are used to apply constraints
   int counter = 0;
 
   /*
@@ -30,19 +30,20 @@ public class SudokuPlayer implements Runnable, ActionListener {
   * (by calling allDiff()) and makes the initial call to backtrack().
   * You should not change this method header.
   */
-  private final void AC3Init(){
+  private final void AC3Init(){ //Initialize AC3
     //Do NOT remove these lines (required for the GUI)
     board.Clear();
     recursions = 0;
 
 
-    fillGlobalDomains(0);
-    fillNeighbors();
-    fillGlobalQueue();
+    fillGlobalDomains(0);	// Pre-assigned values receive one domain value, others receive 1,2,3,...9
+    fillNeighbors();			// Add each index with which the current index is in constraint with
+    fillGlobalQueue();		// Using neighbors, fill queue with arcs to be used to apply constraints
 
     // Initial call to backtrack() on cell 0 (top left)
-    boolean success = backtrack(0,globalDomains);
+    boolean success = backtrack(0);
 
+    // fill vals before printing
     for(int i=0; i<globalDomains.length; i++) {
       vals[i/9][i%9] = globalDomains[i].get(0);
     }
@@ -53,6 +54,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
   /*
   *  This method defines constraints between a set of variables.
+  *  Pass in all sets of constraining variables
   */
   private final void allDiff(int[] all){
     //fill neighbors
@@ -76,20 +78,21 @@ public class SudokuPlayer implements Runnable, ActionListener {
     for(int i =0; i<neighbors.length; i++) {
       neighbors[i] = new ArrayList<Integer>();
     }
+    // create dummy ArrayList with domain 1->9
     ArrayList<Integer> listDomains = new ArrayList<Integer>();
     for(int j = 1; j<=9; j++){
       listDomains.add(j);
     }
     //populate global domains
     for (int i = 0; i < globalDomains.length; i++){
-      if (vals[(int)i/9][i%9]>0){
+      if (vals[(int)i/9][i%9]>0){	// if already assigned, add that one value to domain
         ArrayList<Integer> list = new ArrayList<Integer>();
         list.add(vals[(int)i/9][i%9]);
         globalDomains[i] = list;
-        if(custom==1){
-          counter++;
+        if(custom==1){ //used for evaluating end state of custom solver
+          counter++; 
         }
-      } else {
+      } else { // If not already assigned, fill domains with 1->9
         ArrayList<Integer> newList = new ArrayList<>(listDomains);
         globalDomains[i] = newList;
       }
@@ -102,8 +105,8 @@ public class SudokuPlayer implements Runnable, ActionListener {
   private final void fillGlobalQueue(){
     for(int i = 0; i < neighbors.length; i++){ //81 tiles
       for(int val1= 0; val1< neighbors[i].size(); val1++){ // array at each index of neighbors
-        if (i!=val1){
-          Arc newArc = new Arc(i, neighbors[i].get(val1));
+        if (i!=val1){ // if it is not itself
+          Arc newArc = new Arc(i, neighbors[i].get(val1));	// Create Arc for that constraint and add it to gQueue
           globalQueue.add(newArc);
         }
       }
@@ -112,7 +115,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
 
   /*
-  *  Fill neighbors
+  *  Fill neighbors by adding each index with which the current index is in constraint with 
   */
   private final void fillNeighbors(){
     //call alldiff for all rows
@@ -131,7 +134,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
       }
       allDiff(currCol);
     }
-    //call alldiff for all box
+    //call alldiff for all boxes
     int[] box1 = new int[]{0,1,2,9,10,11,18,19,20};
     int[] box2 = new int[]{3,4,5,12,13,14,21,22,23};
     int[] box3 = new int[]{6,7,8,15,16,17,24,25,26};
@@ -142,6 +145,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
     int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
     int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
+    
     for(int i=0; i<currBox[0].length; i++) {
       allDiff(currBox[i]);
     }
@@ -154,12 +158,12 @@ public class SudokuPlayer implements Runnable, ActionListener {
   * Recursive calls to determine whether to continue down a path of correct assignments
   * or to backtrack and re-assign
   */
-  private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
+  private final boolean backtrack(int cell) {
     recursions +=1;
 
     // Check if vals[][] already has an assignment for this cell
     if(cell!=81 && vals[cell/9][cell%9]!=0) {
-      return backtrack(cell+1, globalDomains);
+      return backtrack(cell+1);
     }
     //create temp copy of gD to modify in AC3 call
     ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
@@ -180,7 +184,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     while(!temp.isEmpty()) {
       globalDomains[cell].clear();
       globalDomains[cell].add(temp.get(0));
-      if(backtrack(cell+1, globalDomains)) {
+      if(backtrack(cell+1)) {
         return true;
       }
       else {
