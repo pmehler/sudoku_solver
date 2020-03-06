@@ -19,6 +19,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     ArrayList<Integer>[] globalDomains = new ArrayList[81];
     ArrayList<Integer>[] neighbors = new ArrayList[81];
     Queue<Arc> globalQueue = new LinkedList<Arc>();
+    int counter = 0;
 
 
 	/*
@@ -253,25 +254,14 @@ public class SudokuPlayer implements Runnable, ActionListener {
      }
 
 
-     private boolean boardFilled() {
-    	 	for(int i=0; i<globalDomains.length; i++) {
-    	 		if(globalDomains[i].size()>1) {
-    	 			return false;
-    	 		}
-    	 	}
-    	 	return true;
-     }
-
-
      private final boolean custom_backtrack(int cell, ArrayList<Integer>[] Domains) {
+       System.out.println("Cell: " + cell + " Counter: " + counter);
 
  		//Do NOT remove
  		recursions +=1;
 
-     	// Check in vals[][] already has an assignment for this cell
-     	if(cell!=81 && vals[cell/9][cell%9]!=0) {
-     		return custom_backtrack(cell+1, globalDomains);
-     	}
+    // Check if board has been filled
+
 
          ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
          for(int i=0; i<globalDomains.length; i++) {
@@ -281,19 +271,26 @@ public class SudokuPlayer implements Runnable, ActionListener {
      	if(!AC3(globalDomainsCopy)) {
      		return false;
      	}
+      counter++;
 
-     	// Check if board has been filled
-     	if(boardFilled()) {
-     		return true;
-     	}
-
-     	int nextCell = mostConstrained(globalDomainsCopy);
+      if(counter==82) {
+        return true;
+      }
 
 
      	ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
+      globalDomains[cell].clear();//needed to avoid choosing self as nextCell
+      globalDomains[cell].add(1);//needed to avoid choosing self as nextCell
+      int nextCell = mostConstrained(globalDomainsCopy);
+
      	while(!temp.isEmpty()) {
      		globalDomains[cell].clear();
      		globalDomains[cell].add(temp.get(0));
+
+        System.out.println("Calling backtrack on cell " + nextCell + " from cell " + cell);
+        if(nextCell==2){
+          System.out.println("Trying value " + temp.get(0));
+        }
      		if(custom_backtrack(nextCell, globalDomains)) {
      			return true;
      		}
@@ -303,10 +300,11 @@ public class SudokuPlayer implements Runnable, ActionListener {
      		}
      	}
 
- 		globalDomains[cell].clear();
+ 		  globalDomains[cell].clear();
  	    for(int j = 1; j<=9; j++){
  	    		globalDomains[cell].add(j);
  	    }
+        counter--;
      		return false;
      }
 
@@ -337,6 +335,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
              ArrayList<Integer> list = new ArrayList<Integer>();
              list.add(vals[(int)i/9][i%9]);
              globalDomains[i] = list;
+             counter++;
            } else {
              ArrayList<Integer> newList = new ArrayList<>(listDomains);
              globalDomains[i] = newList;
