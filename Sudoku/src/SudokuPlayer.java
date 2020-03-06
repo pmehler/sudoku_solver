@@ -35,63 +35,9 @@ public class SudokuPlayer implements Runnable, ActionListener {
     board.Clear();
     recursions = 0;
 
-    // fill globalDomains with empty ArrayLists
-    for(int i =0; i<neighbors.length; i++) {
-      neighbors[i] = new ArrayList<Integer>();
-    }
 
-    ArrayList<Integer> listDomains = new ArrayList<Integer>();
-    for(int j = 1; j<=9; j++){
-      listDomains.add(j);
-    }
-
-    //populate global domains
-    for (int i = 0; i < globalDomains.length; i++){
-      if (vals[(int)i/9][i%9]>0){
-        ArrayList<Integer> list = new ArrayList<Integer>();
-        list.add(vals[(int)i/9][i%9]);
-        globalDomains[i] = list;
-      } else {
-        ArrayList<Integer> newList = new ArrayList<>(listDomains);
-        globalDomains[i] = newList;
-      }
-    }
-
-    //call alldiff for all rows
-
-    int[] currRow = new int[9];
-    for(int row = 0; row < 9; row++){
-      for(int index = 0; index<9; index++){
-        currRow[index] = index + (9 * row);
-      }
-      allDiff(currRow);
-    }
-
-    //call alldiff for all columns
-    int[] currCol = new int[9];
-    for(int col = 0; col < 9; col++){
-      for(int index = 0; index<9; index++){
-        currCol[index] = (index * 9) + col;
-      }
-      allDiff(currCol);
-    }
-
-    //call alldiff for all box
-    int[] box1 = new int[]{0,1,2,9,10,11,18,19,20};
-    int[] box2 = new int[]{3,4,5,12,13,14,21,22,23};
-    int[] box3 = new int[]{6,7,8,15,16,17,24,25,26};
-    int[] box4 = new int[]{27,28,29,36,37,38,45,46,47};
-    int[] box5 = new int[]{30,31,32,39,40,41,48,49,50};
-    int[] box6 = new int[]{33,34,35,42,43,44,51,52,53};
-    int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
-    int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
-    int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
-
-    int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
-    for(int i=0; i<currBox[0].length; i++) {
-      allDiff(currBox[i]);
-    }
-
+    fillGlobalDomains(0);
+    fillNeighbors();
     fillGlobalQueue();
 
     // Initial call to backtrack() on cell 0 (top left)
@@ -100,10 +46,10 @@ public class SudokuPlayer implements Runnable, ActionListener {
     for(int i=0; i<globalDomains.length; i++) {
       vals[i/9][i%9] = globalDomains[i].get(0);
     }
-
     // Prints evaluation of run
     Finished(success);
   }
+
 
   /*
   *  This method defines constraints between a set of variables.
@@ -121,11 +67,39 @@ public class SudokuPlayer implements Runnable, ActionListener {
     }
   }
 
+
+  /*
+  *  Fill global domains
+  */
+  private final void fillGlobalDomains(int custom){
+    // fill globalDomains with empty ArrayLists
+    for(int i =0; i<neighbors.length; i++) {
+      neighbors[i] = new ArrayList<Integer>();
+    }
+    ArrayList<Integer> listDomains = new ArrayList<Integer>();
+    for(int j = 1; j<=9; j++){
+      listDomains.add(j);
+    }
+    //populate global domains
+    for (int i = 0; i < globalDomains.length; i++){
+      if (vals[(int)i/9][i%9]>0){
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        list.add(vals[(int)i/9][i%9]);
+        globalDomains[i] = list;
+        if(custom==1){
+          counter++; 
+        }
+      } else {
+        ArrayList<Integer> newList = new ArrayList<>(listDomains);
+        globalDomains[i] = newList;
+      }
+    }
+  }
+
   /*
   *  Fill global queue
   */
   private final void fillGlobalQueue(){
-
     for(int i = 0; i < neighbors.length; i++){ //81 tiles
       for(int val1= 0; val1< neighbors[i].size(); val1++){ // array at each index of neighbors
         if (i!=val1){
@@ -138,12 +112,50 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
 
   /*
+  *  Fill neighbors
+  */
+  private final void fillNeighbors(){
+    //call alldiff for all rows
+    int[] currRow = new int[9];
+    for(int row = 0; row < 9; row++){
+      for(int index = 0; index<9; index++){
+        currRow[index] = index + (9 * row);
+      }
+      allDiff(currRow);
+    }
+    //call alldiff for all columns
+    int[] currCol = new int[9];
+    for(int col = 0; col < 9; col++){
+      for(int index = 0; index<9; index++){
+        currCol[index] = (index * 9) + col;
+      }
+      allDiff(currCol);
+    }
+    //call alldiff for all box
+    int[] box1 = new int[]{0,1,2,9,10,11,18,19,20};
+    int[] box2 = new int[]{3,4,5,12,13,14,21,22,23};
+    int[] box3 = new int[]{6,7,8,15,16,17,24,25,26};
+    int[] box4 = new int[]{27,28,29,36,37,38,45,46,47};
+    int[] box5 = new int[]{30,31,32,39,40,41,48,49,50};
+    int[] box6 = new int[]{33,34,35,42,43,44,51,52,53};
+    int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
+    int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
+    int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
+    int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
+    for(int i=0; i<currBox[0].length; i++) {
+      allDiff(currBox[i]);
+    }
+  }
+
+
+
+
+  /*
   * Recursive calls to determine whether to continue down a path of correct assignments
   * or to backtrack and re-assign
   */
   private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
 
-    //Do NOT remove
     recursions +=1;
 
     // Check in vals[][] already has an assignment for this cell
@@ -172,7 +184,8 @@ public class SudokuPlayer implements Runnable, ActionListener {
       if(backtrack(cell+1, globalDomains)) {
         return true;
       }
-      else { //the next backtrack assignment failed
+      else {
+        //the next backtrack assignment failed
         //remove value from possible domains of next cell
         temp.remove(0);
       }
@@ -212,7 +225,6 @@ public class SudokuPlayer implements Runnable, ActionListener {
       }
     }
   }
-
 
 
   /*
@@ -257,12 +269,8 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
 
   private final boolean custom_backtrack(int cell, ArrayList<Integer>[] Domains) {
-    System.out.println("Cell: " + cell + " Counter: " + counter);
-
     //Do NOT remove
     recursions +=1;
-
-
 
     ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
     for(int i=0; i<globalDomains.length; i++) {
@@ -290,14 +298,11 @@ public class SudokuPlayer implements Runnable, ActionListener {
       globalDomains[cell].clear();
       globalDomains[cell].add(temp.get(0));
 
-      System.out.println("Calling backtrack on cell " + nextCell + " from cell " + cell);
-      if(nextCell==2){
-        System.out.println("Trying value " + temp.get(0));
-      }
       if(custom_backtrack(nextCell, globalDomains)) {
         return true;
       }
-      else { //the next backtrack assignment failed
+      else {
+        //the next backtrack assignment failed
         //remove value from possible domains of next cell
         temp.remove(0);
       }
@@ -322,69 +327,13 @@ public class SudokuPlayer implements Runnable, ActionListener {
     board.Clear();
     System.out.println("Running custom algorithm");
 
-    // fill globalDomains with empty ArrayLists
-    for(int i =0; i<neighbors.length; i++) {
-      neighbors[i] = new ArrayList<Integer>();
-    }
 
-    ArrayList<Integer> listDomains = new ArrayList<Integer>();
-    for(int j = 1; j<=9; j++){
-      listDomains.add(j);
-    }
-
-    //populate global domains
-    for (int i = 0; i < globalDomains.length; i++){
-      if (vals[(int)i/9][i%9]>0){
-        ArrayList<Integer> list = new ArrayList<Integer>();
-        list.add(vals[(int)i/9][i%9]);
-        globalDomains[i] = list;
-        counter++;
-      } else {
-        ArrayList<Integer> newList = new ArrayList<>(listDomains);
-        globalDomains[i] = newList;
-      }
-    }
-
-    //call alldiff for all rows
-    int[] currRow = new int[9];
-    for(int row = 0; row < 9; row++){
-      for(int index = 0; index<9; index++){
-        currRow[index] = index + (9 * row);
-      }
-      allDiff(currRow);
-    }
-
-
-    //call alldiff for all columns
-    int[] currCol = new int[9];
-    for(int col = 0; col < 9; col++){
-      for(int index = 0; index<9; index++){
-        currCol[index] = (index * 9) + col;
-      }
-      allDiff(currCol);
-    }
-
-    //call alldiff for all box
-    int[] box1 = new int[]{0,1,2,9,10,11,18,19,20};
-    int[] box2 = new int[]{3,4,5,12,13,14,21,22,23};
-    int[] box3 = new int[]{6,7,8,15,16,17,24,25,26};
-    int[] box4 = new int[]{27,28,29,36,37,38,45,46,47};
-    int[] box5 = new int[]{30,31,32,39,40,41,48,49,50};
-    int[] box6 = new int[]{33,34,35,42,43,44,51,52,53};
-    int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
-    int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
-    int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
-
-    int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
-    for(int i=0; i<currBox[0].length; i++) {
-      allDiff(currBox[i]);
-    }
-
+    fillGlobalDomains(1);
+    fillNeighbors();
     fillGlobalQueue();
 
     // Initial call to backtrack() on cell 0 (top left)
     boolean success = custom_backtrack(0,globalDomains);
-
 
     for(int i=0; i<globalDomains.length; i++) {
       vals[i/9][i%9] = globalDomains[i].get(0);
