@@ -12,8 +12,6 @@ public class SudokuPlayer implements Runnable, ActionListener {
     int[][] vals = new int[9][9];
     Board board = null;
 
-
-
     /// --- AC-3 Constraint Satisfication --- ///
 
 
@@ -21,8 +19,6 @@ public class SudokuPlayer implements Runnable, ActionListener {
     ArrayList<Integer>[] globalDomains = new ArrayList[81];
     ArrayList<Integer>[] neighbors = new ArrayList[81];
     Queue<Arc> globalQueue = new LinkedList<Arc>();
-    int trueCounter = 0;
-    //Map<Integer,Integer> mostConstrained = new HashMap<Integer, Integer>();
 
 
 	/*
@@ -40,10 +36,10 @@ public class SudokuPlayer implements Runnable, ActionListener {
 			neighbors[i] = new ArrayList<Integer>();
 		}
 
-         ArrayList<Integer> listDomains = new ArrayList<Integer>();
-         for(int j = 1; j<=9; j++){
+        ArrayList<Integer> listDomains = new ArrayList<Integer>();
+        for(int j = 1; j<=9; j++){
            listDomains.add(j);
-         }
+        }
 
 
 
@@ -58,14 +54,6 @@ public class SudokuPlayer implements Runnable, ActionListener {
              globalDomains[i] = newList;
            }
          }
-/*
-         for(int g = 0; g < globalDomains.length; g++){
-           for(int q: globalDomains[g]){
-             System.out.print(q);
-           }
-           System.out.println();
-         }*/
-
 
          //call alldiff for all rows
 
@@ -77,16 +65,12 @@ public class SudokuPlayer implements Runnable, ActionListener {
            allDiff(currRow);
          }
 
-
          //call alldiff for all columns
         int[] currCol = new int[9];
-        for(int col = 0; col < 9; col++){
-        		//System.out.print("column: "); 
+        for(int col = 0; col < 9; col++){ 
             for(int index = 0; index<9; index++){
                 currCol[index] = (index * 9) + col;
-                //System.out.print((((index * 9)+ col)+", ") );
             }
-            //System.out.println(); 
             allDiff(currCol);
         }
 
@@ -105,59 +89,24 @@ public class SudokuPlayer implements Runnable, ActionListener {
         for(int i=0; i<currBox[0].length; i++) {
         		allDiff(currBox[i]);
         }
-        /*
-        for(int i=0; i<neighbors[0].size(); i++) {
-        		System.out.print(neighbors[0].get(i)+", ");
-        }
-        System.out.println();
-        */
         
         fillGlobalQueue();
 
-
-         // Initial call to backtrack() on cell 0 (top left)
+        // Initial call to backtrack() on cell 0 (top left)
         boolean success = backtrack(0,globalDomains);
-
-
-        //System.out.println("printing gd");
-        /*for(int g = 0; g < globalDomains.length; g++){
-          for(int q: globalDomains[g]){
-            System.out.print(q);
-          }
-          System.out.println();
-        }*/
-        //System.out.println("done printing gd");
-
 
         for(int i=0; i<globalDomains.length; i++) {
     			vals[i/9][i%9] = globalDomains[i].get(0);
         }
-        /*
-        for(int i=0; i<globalDomains.length; i++) {
-        		for(int j=0; j<globalDomains[i].size(); j++) {
-        			System.out.print(globalDomains[i].get(j)+", ");
-        		}
-			System.out.println();
-        }
-        */
         
         // Prints evaluation of run
         Finished(success);
-        
-        
-
     }
-
-
 
     /*
      *  This method defines constraints between a set of variables.
-     *  Refer to the book for more details. You may change this method header.
      */
     private final void allDiff(int[] all){
-        // YOUR CODE HERE
-        // [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        // [0, 1, 2, 9, 10, 11, 18, 19, 20]
         //fill neighbors
         for (int i: all){
           for(int j: all){
@@ -179,7 +128,6 @@ public class SudokuPlayer implements Runnable, ActionListener {
         for(int val1= 0; val1< neighbors[i].size(); val1++){ // array at each index of neighbors
             if (i!=val1){
               Arc newArc = new Arc(i, neighbors[i].get(val1));
-              //System.out.println(newArc.toString()+", ");
               globalQueue.add(newArc);
             }
           }   
@@ -188,8 +136,8 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
 
     /*
-     * This is the backtracking algorithm. If you change this method header, you will have
-     * to update the calls to this method.
+     * Recursive calls to determine whether to continue down a path of correct assignments
+     * or to backtrack and re-assign
      */
     private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
 
@@ -197,54 +145,28 @@ public class SudokuPlayer implements Runnable, ActionListener {
 		recursions +=1;
 
     		// Check in vals[][] already has an assignment for this cell
-    		if(cell!=81 && vals[cell/9][cell%9]!=0) {
-    			//System.out.println("Already Assigned Value: " + vals[cell/9][cell%9]+" calling backtrack");
-    			
+    		if(cell!=81 && vals[cell/9][cell%9]!=0) {   			
     			return backtrack(cell+1, globalDomains);
     		}
+    		
         ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
         for(int i=0; i<globalDomains.length; i++) {
         		globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]); 
         }
-        //System.arraycopy(globalDomains, 0, globalDomainsCopy, 0, 81);
 
-        // ArrayList<Integer> temp2 = new ArrayList<>(globalDomains[cell]);
-        
-        /*
-        System.out.print(cell + "  ");
-        System.out.println("Printing temp before ac3");
-        for(int g: temp2){
-          System.out.println(g);
-        }
-		*/
-        if(cell!=0) {
-        		//System.out.println("calling ac3, cell "+ (cell-1) +" has val " + globalDomains[cell-1].get(0));
-        }
-         
     		if(!AC3(globalDomainsCopy)) {
-          //System.out.print(cell + "  ");
-          //System.out.println("AC3 returned false");
-    			
     			return false;
     		}
-    		 if(cell!=0) {
-            System.out.println("value "+ globalDomains[cell-1].get(0)+ " is acceptable for Cell "+ (cell-1) + " as AC3 returned true");
-    		 }
-    		 
+
     		// Check if board has been filled
     		if(cell == 81) {
     			return true;
     		}
             
     		ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
-        //System.out.print(cell + "  ");
-        //System.out.println("Printing temp2");
-		//System.out.println("first value of temp: " + temp.get(0));
     		while(!temp.isEmpty()) {
     			globalDomains[cell].clear();
     			globalDomains[cell].add(temp.get(0));
-    			//System.out.println("Trying value: " + temp.get(0)+ " for cell "+cell);
-    			//System.out.println("recursively calling backtrack on cell " + (cell+1));
     			if(backtrack(cell+1, globalDomains)) {
     				return true;
     			}
@@ -253,7 +175,6 @@ public class SudokuPlayer implements Runnable, ActionListener {
     				temp.remove(0);
     			}
     		}
-		System.out.println("return false, Cell num, value: "+cell+ ", "+ globalDomains[cell].get(0));
 		globalDomains[cell].clear();
 	    for(int j = 1; j<=9; j++){
 	    		globalDomains[cell].add(j);
@@ -264,7 +185,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
 
     /*
-     * This is the actual AC3 Algorithm. You may change this method header.
+     * Arc Constraint Method maintains the Queue which determine which arcs need to be updated by Revise()
      */
     private final boolean AC3(ArrayList<Integer>[] Domains) {
         Queue<Arc> arcQ = new LinkedList<>(globalQueue);
@@ -293,24 +214,18 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
 
     /*
-     * This is the Revise() procedure. You may change this method header.
+     * Revise() is called by AC3 and modifies the domains of given variables in an arc to be made consistent
      */
      private final boolean Revise(Arc t, ArrayList<Integer>[] Domains){
     	 	// Determines if the domain of a variable can be reduced
     	 	boolean revised = false;
 
     	 	if(Domains[t.Xj].size()==1) {
-          //System.out.println("Size of gD copy at "+ Xj)
     	 		if(Domains[t.Xi].contains(Domains[t.Xj].get(0))){
     	 			Domains[t.Xi].remove(Domains[t.Xi].indexOf(Domains[t.Xj].get(0)));
-            revised = true;
-            //System.out.println("removing "+Domains[t.Xj].get(0)+" at index " + t.Xj + " from the domain of index " +  t.Xi);
+    	 			revised = true;
     	 		}
     	 	}
-
-    	 	/*for(int i=0; i<globalDomains[t.Xi].size(); i++) {
-
-    	 	}*/
         return revised;
  	}
      
@@ -327,9 +242,10 @@ public class SudokuPlayer implements Runnable, ActionListener {
     	 			}
     	 		}
     	 	}
-    	 	System.out.println("Mincell: " + minCell);
     	 return minCell; 
      }
+     
+     
      private boolean boardFilled() {
     	 	for(int i=0; i<globalDomains.length; i++) {
     	 		if(globalDomains[i].size()>1) {
@@ -338,87 +254,52 @@ public class SudokuPlayer implements Runnable, ActionListener {
     	 	}
     	 	return true;
      }
+     
+     
      private final boolean custom_backtrack(int cell, ArrayList<Integer>[] Domains) {
 
  		//Do NOT remove
  		recursions +=1;
  		
-
-     		// Check in vals[][] already has an assignment for this cell
-     		if(cell!=81 && vals[cell/9][cell%9]!=0) {
-     			//System.out.println("Already Assigned Value: " + vals[cell/9][cell%9]+" calling backtrack");
-     			
-     			return custom_backtrack(cell+1, globalDomains);
-     		}
+     	// Check in vals[][] already has an assignment for this cell
+     	if(cell!=81 && vals[cell/9][cell%9]!=0) {     			
+     		return custom_backtrack(cell+1, globalDomains);
+     	}
+     		
          ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
          for(int i=0; i<globalDomains.length; i++) {
-         		globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]); 
-         }
-         //System.arraycopy(globalDomains, 0, globalDomainsCopy, 0, 81);
-
-         // ArrayList<Integer> temp2 = new ArrayList<>(globalDomains[cell]);
-         
-         /*
-         System.out.print(cell + "  ");
-         System.out.println("Printing temp before ac3");
-         for(int g: temp2){
-           System.out.println(g);
-         }
- 		*/
-      
+         	globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]); 
+         }      
           
-     		if(!AC3(globalDomainsCopy)) {
-           //System.out.print(cell + "  ");
-           //System.out.println("AC3 returned false");
-     			return false;
-     		}
+     	if(!AC3(globalDomainsCopy)) {
+     		return false;
+     	}
      		
+     	// Check if board has been filled
+     	if(boardFilled()) {
+     		return true;
+     	}
      		
-     	   if(cell!=0) {
-        		//System.out.println("calling ac3, cell "+ (cell-1) +" has val " + globalDomains[cell-1].get(0));
-     		   //trueCounter++;
-        }
-     		
-     		 if(cell!=0) {
-             System.out.println("value "+ globalDomains[cell-1].get(0)+ " is acceptable for Cell "+ (cell-1) + " as AC3 returned true");
-     		 }
-     		 
-     		// Check if board has been filled
-     		System.out.println("trueCounter = "+ trueCounter);
-     		if(trueCounter == 81) {
-     			return true;
-     		}
-     		if(boardFilled()) {
-     			return true;
-     		}
-     		int nextCell = mostConstrained(globalDomainsCopy); 
+     	int nextCell = mostConstrained(globalDomainsCopy); 
 
              
-     		ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
-         //System.out.print(cell + "  ");
-         //System.out.println("Printing temp2");
- 		//System.out.println("first value of temp: " + temp.get(0));
-     		while(!temp.isEmpty()) {
-     			globalDomains[cell].clear();
-     			globalDomains[cell].add(temp.get(0));
-     			//System.out.println("Trying value: " + temp.get(0)+ " for cell "+cell);
-     			//System.out.println("recursively calling backtrack on cell " + (cell+1));
-     			if(custom_backtrack(nextCell, globalDomains)) {
-     				//trueCounter++;
-     				return true;
-     			}
-     			else { //the next backtrack assignment failed
-     				//remove value from possible domains of next cell
-     				//trueCounter--;
-     				temp.remove(0);
-     			}
+     	ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
+     	while(!temp.isEmpty()) {
+     		globalDomains[cell].clear();
+     		globalDomains[cell].add(temp.get(0));
+     		if(custom_backtrack(nextCell, globalDomains)) {
+     			return true;
      		}
- 		System.out.println("return false, Cell num, value: "+cell+ ", "+ globalDomains[cell].get(0));
+     		else { //the next backtrack assignment failed
+     			//remove value from possible domains of next cell
+     			temp.remove(0);
+     		}
+     	}
+     	
  		globalDomains[cell].clear();
  	    for(int j = 1; j<=9; j++){
  	    		globalDomains[cell].add(j);
  	    }
- 	    //trueCounter--;
      		return false;
      }
 
@@ -428,131 +309,81 @@ public class SudokuPlayer implements Runnable, ActionListener {
       */
     private final void customSolver(){
     		// count the number of neighbors that contain only one domain choice
-    	/*
-    	 * Loop through gD
-    	 * Incremement hash map for each domain being 1
-    	 * Loop through neighbors for each pre-assigned value
-    	 * Incrememnt Neighbors of assigned value 
-    	 * 
-    	 */
-
-    	   //set 'success' to true if a successful board
-    	   //is found and false otherwise.
-		   board.Clear();
-
-	        System.out.println("Running custom algorithm");
+    	    //set 'success' to true if a successful board
+    	    //is found and false otherwise.
+		board.Clear();	       
+		System.out.println("Running custom algorithm");
 
 	    	// fill globalDomains with empty ArrayLists
-			for(int i =0; i<neighbors.length; i++) {
-				neighbors[i] = new ArrayList<Integer>();
-			}
+		for(int i =0; i<neighbors.length; i++) {
+			neighbors[i] = new ArrayList<Integer>();
+		}
 
-	         ArrayList<Integer> listDomains = new ArrayList<Integer>();
-	         for(int j = 1; j<=9; j++){
-	           listDomains.add(j);
-	         }
+         ArrayList<Integer> listDomains = new ArrayList<Integer>();
+         for(int j = 1; j<=9; j++){
+           listDomains.add(j);
+         }
 
+         //populate global domains
+         for (int i = 0; i < globalDomains.length; i++){
+           if (vals[(int)i/9][i%9]>0){
+             ArrayList<Integer> list = new ArrayList<Integer>();
+             list.add(vals[(int)i/9][i%9]);
+             globalDomains[i] = list;
+           } else {
+             ArrayList<Integer> newList = new ArrayList<>(listDomains);
+             globalDomains[i] = newList;
+           }
+         }
 
-
-	         //populate global domains
-	         for (int i = 0; i < globalDomains.length; i++){
-	           if (vals[(int)i/9][i%9]>0){
-	             ArrayList<Integer> list = new ArrayList<Integer>();
-	             list.add(vals[(int)i/9][i%9]);
-	             globalDomains[i] = list;
-	             trueCounter++;
-	           } else {
-	             ArrayList<Integer> newList = new ArrayList<>(listDomains);
-	             globalDomains[i] = newList;
-	           }
-	         }
-	         /*
-	         for(int g = 0; g < globalDomains.length; g++){
-	           for(int q: globalDomains[g]){
-	             System.out.print(q);
-	           }
-	           System.out.println();
-	         }
-	         */
+         //call alldiff for all rows
+         int[] currRow = new int[9];
+         for(int row = 0; row < 9; row++){
+           for(int index = 0; index<9; index++){
+             currRow[index] = index + (9 * row);
+           }
+           allDiff(currRow);
+         }
 
 
-	         //call alldiff for all rows
+         //call alldiff for all columns
+        int[] currCol = new int[9];
+        for(int col = 0; col < 9; col++){
+            for(int index = 0; index<9; index++){
+                currCol[index] = (index * 9) + col;
+            }
+            allDiff(currCol);
+        }
 
-	         int[] currRow = new int[9];
-	         for(int row = 0; row < 9; row++){
-	           for(int index = 0; index<9; index++){
-	             currRow[index] = index + (9 * row);
-	           }
-	           allDiff(currRow);
-	         }
+         //call alldiff for all box
+        int[] box1 = new int[]{0,1,2,9,10,11,18,19,20};
+        int[] box2 = new int[]{3,4,5,12,13,14,21,22,23};
+        int[] box3 = new int[]{6,7,8,15,16,17,24,25,26};
+        int[] box4 = new int[]{27,28,29,36,37,38,45,46,47};
+        int[] box5 = new int[]{30,31,32,39,40,41,48,49,50};
+        int[] box6 = new int[]{33,34,35,42,43,44,51,52,53};
+        int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
+        int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
+        int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
+        
+        int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
+        for(int i=0; i<currBox[0].length; i++) {
+        		allDiff(currBox[i]);
+        }
 
+        fillGlobalQueue();
 
-	         //call alldiff for all columns
-	        int[] currCol = new int[9];
-	        for(int col = 0; col < 9; col++){
-	        		//System.out.print("column: "); 
-	            for(int index = 0; index<9; index++){
-	                currCol[index] = (index * 9) + col;
-	                //System.out.print((((index * 9)+ col)+", ") );
-	            }
-	            //System.out.println(); 
-	            allDiff(currCol);
-	        }
-
-	         //call alldiff for all box
-	        int[] box1 = new int[]{0,1,2,9,10,11,18,19,20};
-	        int[] box2 = new int[]{3,4,5,12,13,14,21,22,23};
-	        int[] box3 = new int[]{6,7,8,15,16,17,24,25,26};
-	        int[] box4 = new int[]{27,28,29,36,37,38,45,46,47};
-	        int[] box5 = new int[]{30,31,32,39,40,41,48,49,50};
-	        int[] box6 = new int[]{33,34,35,42,43,44,51,52,53};
-	        int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
-	        int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
-	        int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
-	        
-	        int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
-	        for(int i=0; i<currBox[0].length; i++) {
-	        		allDiff(currBox[i]);
-	        }
-	        /*
-	        for(int i=0; i<neighbors[0].size(); i++) {
-	        		System.out.print(neighbors[0].get(i)+", ");
-	        }
-	        System.out.println();
-	        */
-	        
-	        fillGlobalQueue();
+         // Initial call to backtrack() on cell 0 (top left)
+        boolean success = custom_backtrack(0,globalDomains);
 
 
-	         // Initial call to backtrack() on cell 0 (top left)
-	        boolean success = custom_backtrack(0,globalDomains);
+        for(int i=0; i<globalDomains.length; i++) {
+    			vals[i/9][i%9] = globalDomains[i].get(0);
+        }
+      
+		   Finished(success);
 
-
-	        //System.out.println("printing gd");
-	        /*for(int g = 0; g < globalDomains.length; g++){
-	          for(int q: globalDomains[g]){
-	            System.out.print(q);
-	          }
-	          System.out.println();
-	        }*/
-	        //System.out.println("done printing gd");
-
-
-	        for(int i=0; i<globalDomains.length; i++) {
-	    			vals[i/9][i%9] = globalDomains[i].get(0);
-	        }
-	        /*
-	        for(int i=0; i<globalDomains.length; i++) {
-	        		for(int j=0; j<globalDomains[i].size(); j++) {
-	        			System.out.print(globalDomains[i].get(j)+", ");
-	        		}
-				System.out.println();
-	        }
-	        */
-	      
-			   Finished(success);
-
-	    }
+    }
 
     /// ---------- HELPER FUNCTIONS --------- ///
     /// ----   DO NOT EDIT REST OF FILE   --- ///
