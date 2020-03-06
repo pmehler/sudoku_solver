@@ -260,25 +260,26 @@ public class SudokuPlayer implements Runnable, ActionListener {
  		//Do NOT remove
  		recursions +=1;
 
-    // Check if board has been filled
 
 
-         ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
-         for(int i=0; i<globalDomains.length; i++) {
-         	globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]);
-         }
+     ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
+     for(int i=0; i<globalDomains.length; i++) {
+     	globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]);
+     }
 
      	if(!AC3(globalDomainsCopy)) {
      		return false;
      	}
-      counter++;
+      if(cell!=0){
+        counter++;
+      }
 
-      if(counter==82) {
+      // Check if board has been filled
+      if(cell==-1 || counter==82){
         return true;
       }
 
-
-     	ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
+     	ArrayList<Integer> temp = new ArrayList<>(globalDomainsCopy[cell]);
       globalDomains[cell].clear();//needed to avoid choosing self as nextCell
       globalDomains[cell].add(1);//needed to avoid choosing self as nextCell
       int nextCell = mostConstrained(globalDomainsCopy);
@@ -316,13 +317,13 @@ public class SudokuPlayer implements Runnable, ActionListener {
     		// count the number of neighbors that contain only one domain choice
     	    //set 'success' to true if a successful board
     	    //is found and false otherwise.
-		board.Clear();
-		System.out.println("Running custom algorithm");
+  		board.Clear();
+  		System.out.println("Running custom algorithm");
 
-	    	// fill globalDomains with empty ArrayLists
-		for(int i =0; i<neighbors.length; i++) {
-			neighbors[i] = new ArrayList<Integer>();
-		}
+  	    	// fill globalDomains with empty ArrayLists
+  		for(int i =0; i<neighbors.length; i++) {
+  			neighbors[i] = new ArrayList<Integer>();
+  		}
 
          ArrayList<Integer> listDomains = new ArrayList<Integer>();
          for(int j = 1; j<=9; j++){
