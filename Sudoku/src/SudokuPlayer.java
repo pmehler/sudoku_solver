@@ -67,7 +67,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 
          //call alldiff for all columns
         int[] currCol = new int[9];
-        for(int col = 0; col < 9; col++){ 
+        for(int col = 0; col < 9; col++){
             for(int index = 0; index<9; index++){
                 currCol[index] = (index * 9) + col;
             }
@@ -84,12 +84,12 @@ public class SudokuPlayer implements Runnable, ActionListener {
         int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
         int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
         int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
-        
+
         int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
         for(int i=0; i<currBox[0].length; i++) {
         		allDiff(currBox[i]);
         }
-        
+
         fillGlobalQueue();
 
         // Initial call to backtrack() on cell 0 (top left)
@@ -98,7 +98,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
         for(int i=0; i<globalDomains.length; i++) {
     			vals[i/9][i%9] = globalDomains[i].get(0);
         }
-        
+
         // Prints evaluation of run
         Finished(success);
     }
@@ -130,7 +130,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
               Arc newArc = new Arc(i, neighbors[i].get(val1));
               globalQueue.add(newArc);
             }
-          }   
+          }
       }
     }
 
@@ -145,13 +145,13 @@ public class SudokuPlayer implements Runnable, ActionListener {
 		recursions +=1;
 
     		// Check in vals[][] already has an assignment for this cell
-    		if(cell!=81 && vals[cell/9][cell%9]!=0) {   			
+    		if(cell!=81 && vals[cell/9][cell%9]!=0) {
     			return backtrack(cell+1, globalDomains);
     		}
-    		
+
         ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
         for(int i=0; i<globalDomains.length; i++) {
-        		globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]); 
+        		globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]);
         }
 
     		if(!AC3(globalDomainsCopy)) {
@@ -162,7 +162,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     		if(cell == 81) {
     			return true;
     		}
-            
+
     		ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
     		while(!temp.isEmpty()) {
     			globalDomains[cell].clear();
@@ -179,7 +179,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
 	    for(int j = 1; j<=9; j++){
 	    		globalDomains[cell].add(j);
 	    }
-	    
+
     		return false;
     }
 
@@ -228,24 +228,31 @@ public class SudokuPlayer implements Runnable, ActionListener {
     	 	}
         return revised;
  	}
-     
-     
+
+
      private int mostConstrained(ArrayList<Integer>[] globalDomainsCopy) {
-    	 	int minCell = -1; 
+    	 	int minCell = -1;
+        int minCellSize = 10;
     	 	for(int i = 0; i < globalDomainsCopy.length; i++) {
-    	 		if(globalDomains[i].size()!=1) {//if not assigned 
+    	 		if(globalDomains[i].size()!=1) {//if not assigned
     	 			if(minCell==-1) {
-    	 				minCell=i; 
+    	 				minCell=i;
+              minCellSize = globalDomains[i].size();
     	 			}
-    	 			else if(globalDomainsCopy[i].size()<=globalDomainsCopy[minCell].size()) {
-    	 				minCell = i; 
+    	 			else if(globalDomainsCopy[i].size()<=minCellSize) {
+    	 				minCell = i;
+              minCellSize = globalDomainsCopy[i].size();
+              if (minCellSize==1){
+                //return early if reach smallest possible size
+                return minCell;
+              }
     	 			}
     	 		}
     	 	}
-    	 return minCell; 
+    	 return minCell;
      }
-     
-     
+
+
      private boolean boardFilled() {
     	 	for(int i=0; i<globalDomains.length; i++) {
     	 		if(globalDomains[i].size()>1) {
@@ -254,35 +261,35 @@ public class SudokuPlayer implements Runnable, ActionListener {
     	 	}
     	 	return true;
      }
-     
-     
+
+
      private final boolean custom_backtrack(int cell, ArrayList<Integer>[] Domains) {
 
  		//Do NOT remove
  		recursions +=1;
- 		
+
      	// Check in vals[][] already has an assignment for this cell
-     	if(cell!=81 && vals[cell/9][cell%9]!=0) {     			
+     	if(cell!=81 && vals[cell/9][cell%9]!=0) {
      		return custom_backtrack(cell+1, globalDomains);
      	}
-     		
+
          ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
          for(int i=0; i<globalDomains.length; i++) {
-         	globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]); 
-         }      
-          
+         	globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]);
+         }
+
      	if(!AC3(globalDomainsCopy)) {
      		return false;
      	}
-     		
+
      	// Check if board has been filled
      	if(boardFilled()) {
      		return true;
      	}
-     		
-     	int nextCell = mostConstrained(globalDomainsCopy); 
 
-             
+     	int nextCell = mostConstrained(globalDomainsCopy);
+
+
      	ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
      	while(!temp.isEmpty()) {
      		globalDomains[cell].clear();
@@ -295,7 +302,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
      			temp.remove(0);
      		}
      	}
-     	
+
  		globalDomains[cell].clear();
  	    for(int j = 1; j<=9; j++){
  	    		globalDomains[cell].add(j);
@@ -311,7 +318,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
     		// count the number of neighbors that contain only one domain choice
     	    //set 'success' to true if a successful board
     	    //is found and false otherwise.
-		board.Clear();	       
+		board.Clear();
 		System.out.println("Running custom algorithm");
 
 	    	// fill globalDomains with empty ArrayLists
@@ -365,7 +372,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
         int[] box7 = new int[]{54,55,56,63,64,65,72,73,74};
         int[] box8 = new int[]{57,58,59,66,67,68,75,76,77};
         int[] box9 = new int[]{60,61,62,69,70,71,78,79,80};
-        
+
         int[][] currBox = {box1,box2,box3,box4,box5,box6,box7,box8,box9};
         for(int i=0; i<currBox[0].length; i++) {
         		allDiff(currBox[i]);
@@ -380,7 +387,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
         for(int i=0; i<globalDomains.length; i++) {
     			vals[i/9][i%9] = globalDomains[i].get(0);
         }
-      
+
 		   Finished(success);
 
     }
