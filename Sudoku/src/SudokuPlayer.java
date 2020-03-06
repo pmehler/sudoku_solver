@@ -87,7 +87,7 @@ public class SudokuPlayer implements Runnable, ActionListener {
         list.add(vals[(int)i/9][i%9]);
         globalDomains[i] = list;
         if(custom==1){
-          counter++; 
+          counter++;
         }
       } else {
         ArrayList<Integer> newList = new ArrayList<>(listDomains);
@@ -155,29 +155,28 @@ public class SudokuPlayer implements Runnable, ActionListener {
   * or to backtrack and re-assign
   */
   private final boolean backtrack(int cell, ArrayList<Integer>[] Domains) {
-
     recursions +=1;
 
-    // Check in vals[][] already has an assignment for this cell
+    // Check if vals[][] already has an assignment for this cell
     if(cell!=81 && vals[cell/9][cell%9]!=0) {
       return backtrack(cell+1, globalDomains);
     }
-
+    //create temp copy of gD to modify in AC3 call
     ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
     for(int i=0; i<globalDomains.length; i++) {
       globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]);
     }
-
+    //call AC3 and backtrack if it finds a conflict
     if(!AC3(globalDomainsCopy)) {
       return false;
     }
-
     // Check if board has been filled
     if(cell == 81) {
       return true;
     }
-
+    //Save possible domains of cell in question
     ArrayList<Integer> temp = new ArrayList<>(globalDomains[cell]);
+    //Try assigning cell each possible value
     while(!temp.isEmpty()) {
       globalDomains[cell].clear();
       globalDomains[cell].add(temp.get(0));
@@ -190,23 +189,25 @@ public class SudokuPlayer implements Runnable, ActionListener {
         temp.remove(0);
       }
     }
+    //if no valid assignment found, resert domains and backtrack
     globalDomains[cell].clear();
     for(int j = 1; j<=9; j++){
       globalDomains[cell].add(j);
     }
-
     return false;
   }
 
 
   /*
-  * Arc Constraint Method maintains the Queue which determine which arcs need to be updated by Revise()
+  * Arc Constraint Method maintains the Queue which determine
+  * which arcs need to be updated by Revise()
   */
   private final boolean AC3(ArrayList<Integer>[] Domains) {
     Queue<Arc> arcQ = new LinkedList<>(globalQueue);
     Arc curr;
     while(true){
       if(arcQ.isEmpty()){
+        //All constraints can be satisfied
         return true;
       }
       curr = arcQ.remove();
@@ -215,10 +216,11 @@ public class SudokuPlayer implements Runnable, ActionListener {
         return false;
       }
       if (changed){
+        //if domains of current arc val shrunk, readd other neighbors
         ArrayList<Integer> xiNeighbors = neighbors[curr.Xi];
         for(int i = 0; i < xiNeighbors.size(); i++){
           Arc newArc = new Arc(xiNeighbors.get(i), curr.Xi);
-          if(!arcQ.contains(newArc)){  // contains() may always evaluate to true without equals() override for Arc class
+          if(!arcQ.contains(newArc)){
             arcQ.add(newArc);
           }
         }
@@ -227,16 +229,18 @@ public class SudokuPlayer implements Runnable, ActionListener {
   }
 
 
+
   /*
-  * Revise() is called by AC3 and modifies the domains of given variables in an arc to be made consistent
+  * Revise() is called by AC3 and modifies the domains of given
+  * variables in an arc to be made consistent
   */
   private final boolean Revise(Arc t, ArrayList<Integer>[] Domains){
-    // Determines if the domain of a variable can be reduced
-    boolean revised = false;
+    boolean revised = false; //indicates if domain shrunk
     ArrayList<Integer> X = Domains[t.Xi];
     ArrayList<Integer> Y = Domains[t.Xj];
     if(Y.size()==1) {
       if(X.contains(Y.get(0))){
+        //remove val if cannot be same as already assigned neighbor
         X.remove(X.indexOf(Y.get(0)));
         revised = true;
       }
@@ -245,11 +249,16 @@ public class SudokuPlayer implements Runnable, ActionListener {
   }
 
 
+
+/*
+ * Takes in array of domains, and returns most constrained cell
+ * which is the unassigned cell with the smallest domain.
+*/
   private int mostConstrained(ArrayList<Integer>[] globalDomainsCopy) {
     int minCell = -1;
     int minCellSize = 10;
     for(int i = 0; i < globalDomainsCopy.length; i++) {
-      if(globalDomains[i].size()!=1) {//if not assigned
+      if(globalDomains[i].size()!=1) { //if not assigned
         if(minCell==-1) {
           minCell=i;
           minCellSize = globalDomains[i].size();
@@ -268,19 +277,26 @@ public class SudokuPlayer implements Runnable, ActionListener {
   }
 
 
-  private final boolean custom_backtrack(int cell, ArrayList<Integer>[] Domains) {
-    //Do NOT remove
+
+/*
+ * Recursive method used to custom-solve Sudoku
+ */
+  private final boolean custom_backtrack(int cell) {
     recursions +=1;
 
+    //Create a copy of globalDomains to use
     ArrayList<Integer>[] globalDomainsCopy = new ArrayList[81];
     for(int i=0; i<globalDomains.length; i++) {
       globalDomainsCopy[i] = new ArrayList<>(globalDomains[i]);
     }
 
+    //run AC3 and return false if there are conflicts
     if(!AC3(globalDomainsCopy)) {
       return false;
     }
+
     if(cell!=0){
+      //increment count of tiles solved if AC3 was true
       counter++;
     }
 
@@ -288,26 +304,27 @@ public class SudokuPlayer implements Runnable, ActionListener {
     if(cell==-1 || counter==82){
       return true;
     }
-
+    //create an array of possible values to assign to cell
     ArrayList<Integer> temp = new ArrayList<>(globalDomainsCopy[cell]);
+
+    //Find next cell to recursively call on, using most constrained var
     globalDomains[cell].clear();//needed to avoid choosing self as nextCell
     globalDomains[cell].add(1);//needed to avoid choosing self as nextCell
     int nextCell = mostConstrained(globalDomainsCopy);
 
+    //loop through possible assignments
     while(!temp.isEmpty()) {
       globalDomains[cell].clear();
       globalDomains[cell].add(temp.get(0));
-
-      if(custom_backtrack(nextCell, globalDomains)) {
+      if(custom_backtrack(nextCell)) {
         return true;
-      }
-      else {
+      } else {
         //the next backtrack assignment failed
         //remove value from possible domains of next cell
         temp.remove(0);
       }
     }
-
+    //if no assignment worked, reset domains and backtrack
     globalDomains[cell].clear();
     for(int j = 1; j<=9; j++){
       globalDomains[cell].add(j);
@@ -316,29 +333,29 @@ public class SudokuPlayer implements Runnable, ActionListener {
     return false;
   }
 
-  /*
-  * This is where you will write your custom solver.
-  * You should not change this method header.
-  */
+
+
+/*
+ * Custom sudoku solver using most constrained variable and AC3
+ */
   private final void customSolver(){
-    // count the number of neighbors that contain only one domain choice
-    //set 'success' to true if a successful board
-    //is found and false otherwise.
     board.Clear();
     System.out.println("Running custom algorithm");
-
 
     fillGlobalDomains(1);
     fillNeighbors();
     fillGlobalQueue();
 
-    // Initial call to backtrack() on cell 0 (top left)
-    boolean success = custom_backtrack(0,globalDomains);
+    // Initial call to backtrack() on cell 0
+    boolean success = custom_backtrack(0);
 
+    // Fill in final solution
     for(int i=0; i<globalDomains.length; i++) {
       vals[i/9][i%9] = globalDomains[i].get(0);
     }
 
+    //'success' is true if a successful board
+    // was found and false otherwise.
     Finished(success);
 
   }
